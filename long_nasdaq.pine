@@ -2,11 +2,11 @@
 strategy("NASDAQ Buy Strategy", overlay=true)
 
 // Inputs for configuration
-xau_threshold = input.float(0.005, title="XAUUSD Point Threshold for Drop", minval=0.001)
-eur_threshold = input.float(0.000003, title="EURUSD Point Threshold for Drop", minval=0.000001)
-gbp_threshold = input.float(0.000003, title="GBPUSD Point Threshold for Drop", minval=0.000001)
-dxy_threshold = input.float(0.001, title="DXY Point Threshold for Drop", minval=0.0001)
-dxy_volatility_threshold = input.float(0.005, title="DXY Volatility Threshold (High - Low)", minval=0.001)
+xau_threshold = input.float(0.0015, title="XAUUSD Point Threshold for Drop", minval=0.0015) // 1,5 pips
+eur_threshold = input.float(0.000003, title="EURUSD Point Threshold for Drop", minval=0.000003) // 6 pips
+gbp_threshold = input.float(0.000003, title="GBPUSD Point Threshold for Drop", minval=0.000003) // 6 pips
+dxy_threshold = input.float(0.003, title="DXY Point Threshold for Drop", minval=0.003)
+dxy_volatility_threshold = input.float(0.004, title="DXY Volatility Threshold (High - Low)", minval=0.004)
 required_candles = input.int(2, title="Number of Consecutive Candles", minval=1)
 analysis_window = input.int(4, title="Analysis Window (candles)", minval=1)
 
@@ -75,6 +75,6 @@ plotshape(series=define_recent_condition(data_gbp_close, data_gbp_open, gbp_thre
 
 // Enter long position if all conditions are met
 if all_conditions_met
-    label.new(bar_index, high, "ALL CONDITIONS MET", style=label.style_label_down, color=color.green, textcolor=color.white, size=size.normal)
+    label.new(bar_index, high, "LONG", style=label.style_label_down, color=color.green, textcolor=color.white, size=size.normal)
     strategy.entry("Buy NASDAQ", strategy.long, comment="Buy NASDAQ")
 

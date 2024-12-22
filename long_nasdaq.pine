@@ -1,0 +1,49 @@
+//@version=6
+strategy("NASDAQ Buy Strategy", overlay=true)
+
+// Inputs for configuration
+xau_threshold = input.float(0.01, title="XAUUSD Point Threshold for Drop", minval=0.001)
+eur_threshold = input.float(0.000006, title="EURUSD Point Threshold for Drop", minval=0.000001)
+gbp_threshold = input.float(0.000006, title="GBPUSD Point Threshold for Drop", minval=0.000001)
+dxy_threshold = input.float(0.001, title="DXY Point Threshold for Drop", minval=0.0001)
+required_candles = input.int(3, title="Number of Consecutive Candles", minval=1)
+analysis_window = input.int(4, title="Analysis Window (candles)", minval=1)
+
+// Security data
+data_xau_close = request.security("OANDA:XAUUSD", timeframe.period, close)
+data_xau_open = request.security("OANDA:XAUUSD", timeframe.period, open)
+data_eur_close = request.security("OANDA:EURUSD", timeframe.period, close)
+data_eur_open = request.security("OANDA:EURUSD", timeframe.period, open)
+data_dxy_close = request.security("TVC:DXY", timeframe.period, close)
+data_dxy_open = request.security("TVC:DXY", timeframe.period, open)
+data_gbp_close = request.security("OANDA:GBPUSD", timeframe.period, close)
+data_gbp_open = request.security("OANDA:GBPUSD", timeframe.period, open)
+
+// Function to check consecutive sell-offs for the last N candles
+f_consecutive_drops_recent(close_data, open_data, threshold, num_candles) =>
+    match = true
+    for i = 0 to num_candles - 1
+        if ((close_data[i] - open_data[i]) >= -threshold)
+            match := false
+            break
+    match
+
+// Track signals for the most recent N candles
+define_recent_condition(close_data, open_data, threshold, num_candles) =>
+    f_consecutive_drops_recent(close_data, open_data, threshold, num_candles)
+
+// Check conditions for each asset
+xau_condition = define_recent_condition(data_xau_close, data_xau_open, xau_threshold, required_candles)
+eur_condition = define_recent_condition(data_eur_close, data_eur_open, eur_threshold, required_candles)
+dxy_condition = define_recent_condition(data_dxy_close, data_dxy_open, dxy_threshold, required_candles)
+gbp_condition = define_recent_condition(data_gbp_close, data_gbp_open, gbp_threshold, required_candles)
+
+// Debugging conditions
+plotshape(series=xau_condition ? 1 : na, style=shape.triangleup, color=color.red, location=location.belowbar, title="XAU Sell Signal")
+plotshape(series=eur_condition ? 1 : na, style=shape.triangleup, color=color.blue, location=location.belowbar, title="EUR Sell Signal")
+plotshape(series=dxy_condition ? 1 : na, style=shape.triangleup, color=color.green, location=location.belowbar, title="DXY Sell Signal")
+plotshape(series=gbp_condition ? 1 : na, style=shape.triangleup, color=color.orange, location=location.belowbar, title="GBP Sell Signal")
+
+// All conditions must be met for the most recent N candles
+if xau_condition and eur_condition and dxy_condition and gbp_condition
+    strategy.entry("Buy NASDAQ", strategy.long, comment="Buy NASDAQ")
